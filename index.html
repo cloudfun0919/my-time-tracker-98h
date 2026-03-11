@@ -3,39 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>98h 时间账户 (V3 完美版)</title>
+    <title>98h 时间账户 (V4 夜猫版)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* 基础样式与变量 */
+        /* 基础样式与白天模式变量 */
         :root {
-            --primary: #007aff; --bg: #f4f7f6; --card-bg: #ffffff;
-            --text-main: #1c1c1e; --text-sub: #8e8e93; --border: #e5e5ea;
+            --primary: #007aff; 
+            --bg: #f4f7f6; 
+            --card-bg: #ffffff;
+            --text-main: #1c1c1e; 
+            --text-sub: #8e8e93; 
+            --border: #e5e5ea;
             --red: #ff3b30;
+            --tab-bg: #f0f0f5; 
+            --item-bg: #f9f9f9;
         }
+
+        /* 深色模式变量 (跟随系统自动生效) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #0a84ff; 
+                --bg: #000000; 
+                --card-bg: #1c1c1e;
+                --text-main: #f2f2f7; 
+                --text-sub: #98989d; 
+                --border: #38383a;
+                --red: #ff453a;
+                --tab-bg: #2c2c2e; 
+                --item-bg: #2c2c2e;
+            }
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg); margin: 0; padding: 15px;
             display: flex; justify-content: center; -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease; /* 丝滑变色 */
         }
         .app-container {
             width: 100%; max-width: 420px; background: var(--card-bg);
             border-radius: 24px; padding: 20px; box-sizing: border-box;
             box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            transition: background-color 0.3s ease;
         }
         
         /* 顶部看板 */
         .header { text-align: center; margin-bottom: 20px; }
         .date-info { font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 4px;}
         .week-info { color: var(--text-sub); font-size: 13px; margin-bottom: 8px;}
-        .big-time { font-size: 42px; font-weight: 800; color: var(--text-main); margin: 0; }
+        .big-time { font-size: 46px; font-weight: 800; color: var(--text-main); margin: 0; }
         .subtitle { color: var(--text-sub); font-size: 12px; margin-top: 4px; }
+        .quote-text { 
+            font-size: 15px; font-weight: 700; color: var(--primary); 
+            margin-top: 10px; display: inline-block; padding: 6px 14px; 
+            background: rgba(0, 122, 255, 0.1); border-radius: 12px;
+        }
         
         /* 记录区 */
         .input-group { margin-bottom: 12px; display: flex; gap: 8px; width: 100%; }
         select, input[type="text"] {
             width: 100%; padding: 12px; border: 1px solid var(--border);
-            border-radius: 12px; font-size: 15px; background-color: #fcfcfc;
-            outline: none; box-sizing: border-box;
+            border-radius: 12px; font-size: 15px; background-color: var(--item-bg);
+            color: var(--text-main); outline: none; box-sizing: border-box;
         }
         select:focus, input[type="text"]:focus { border-color: var(--primary); }
         .time-selects { display: flex; gap: 8px; flex: 1; }
@@ -48,17 +77,16 @@
         }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:active { background-color: #0056b3; }
-        .btn-secondary { background-color: #f0f0f5; color: var(--text-main); }
-        .btn-secondary:active { background-color: #e0e0e5; }
+        .btn-secondary { background-color: var(--tab-bg); color: var(--text-main); }
         .loss-text { color: var(--text-sub); font-size: 12px; text-align: center; margin-top: 10px; }
 
-        /* 今日明细 (带删除功能) */
+        /* 今日明细 */
         .today-logs-sec { margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); }
         .sec-title { font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 10px; }
         .mini-log-item {
             display: flex; justify-content: space-between; align-items: center;
-            background: #f9f9f9; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
-            font-size: 14px;
+            background: var(--item-bg); padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
+            font-size: 14px; color: var(--text-main);
         }
         .mini-log-left { display: flex; align-items: center; gap: 8px; }
         .del-btn { 
@@ -67,12 +95,12 @@
         }
 
         /* 视图切换 Tabs */
-        .tabs { display: flex; margin: 25px 0 15px 0; background: #f0f0f5; border-radius: 10px; padding: 4px; }
+        .tabs { display: flex; margin: 25px 0 15px 0; background: var(--tab-bg); border-radius: 10px; padding: 4px; }
         .tab-btn {
             flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 600;
             color: var(--text-sub); border-radius: 8px; cursor: pointer;
         }
-        .tab-btn.active { background: white; color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        .tab-btn.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
 
         /* 图表与卡片 */
         .chart-wrapper { position: relative; height: 200px; width: 100%; margin-bottom: 20px; }
@@ -80,14 +108,14 @@
         .view-section.active { display: block; }
         .task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
         .task-card {
-            background: #fafafa; border: 1px solid var(--border); border-radius: 16px;
-            padding: 15px; display: flex; flex-direction: column; gap: 8px;
+            background: var(--item-bg); border: 1px solid var(--border); border-radius: 16px;
+            padding: 15px; display: flex; flex-direction: column; gap: 8px; color: var(--text-main);
         }
         .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 16px; }
         .task-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0;}
         .card-stats {
             display: flex; justify-content: space-between; font-size: 13px; color: var(--text-sub);
-            background: #f0f0f5; padding: 8px 12px; border-radius: 8px;
+            background: var(--tab-bg); padding: 8px 12px; border-radius: 8px;
         }
         .stat-item span { font-family: monospace; font-weight: 600; color: var(--text-main); font-size: 14px;}
     </style>
@@ -99,7 +127,7 @@
         <div class="date-info" id="dateDisplay">加载中...</div>
         <div class="week-info" id="weekDisplay">--</div>
         <div class="big-time" id="displayRemaining">98h 00m</div>
-        <div class="subtitle">本周剩余可用时间 (总额 98h)</div>
+        <div class="quote-text" id="quoteDisplay">加载中...</div>
     </div>
 
     <div class="input-group">
@@ -145,7 +173,258 @@
         <button class="btn-primary" onclick="logTime()">记录单笔时间</button>
         <button class="btn-secondary" onclick="settleDailyFriction()">睡前结损耗</button>
     </div>
-    <div class="loss-text">每天理论可用 14h，点击结算自动对齐账单</div>
 
     <div class="today-logs-sec">
         <div class="sec-title">📝 今日记录明细 (点 🗑️ 可撤销)</div>
+        <div id="todayLogsList"></div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-btn active" onclick="switchView('week')">本周分布</div>
+        <div class="tab-btn" onclick="switchView('month')">本月分布</div>
+    </div>
+
+    <div id="viewWeek" class="view-section active">
+        <div class="chart-wrapper"><canvas id="weekChart"></canvas></div>
+        <ul class="task-list" id="weekTaskList"></ul>
+    </div>
+
+    <div id="viewMonth" class="view-section">
+        <div class="chart-wrapper"><canvas id="monthChart"></canvas></div>
+        <ul class="task-list" id="monthTaskList"></ul>
+    </div>
+</div>
+
+<script>
+    const TOTAL_WEEK_HOURS = 98;
+    const DAILY_HOURS = 14;
+    let timeLogs = JSON.parse(localStorage.getItem('timeLogs')) || [];
+    
+    const TASK_CATEGORIES = {
+        '写作': '#007aff', '阅读': '#34aadc', '修改': '#5856d6', '上课': '#5ac8fa', '开会': '#0056b3', '打工': '#30b0c7',
+        '健身': '#34c759', '买菜': '#3cb371', '家务': '#8e8e93', '通勤': '#aeaeb2', '购物': '#ff9500',
+        '聚餐': '#ff2d55', '出去玩': '#ff3b30', '看视频': '#ffcc00', '通话': '#ff6b22',
+        '👻 碎片损耗': '#8e8e93'
+    };
+
+    function getColorForTask(taskName) {
+        if (TASK_CATEGORIES[taskName]) return TASK_CATEGORIES[taskName];
+        let hash = 0;
+        for (let i = 0; i < taskName.length; i++) hash = taskName.charCodeAt(i) + ((hash << 5) - hash);
+        const fallbackColors = ['#007aff', '#34c759', '#ff9500', '#ff3b30', '#5856d6', '#ff2d55', '#af52de'];
+        return fallbackColors[Math.abs(hash) % fallbackColors.length];
+    }
+
+    const hoursSelect = document.getElementById('taskHours');
+    for (let i = 0; i <= DAILY_HOURS; i++) hoursSelect.innerHTML += `<option value="${i}">${i} 小时</option>`;
+
+    function toggleCustomInput() {
+        const customDiv = document.getElementById('customInputDiv');
+        customDiv.style.display = document.getElementById('taskPreset').value === 'custom' ? 'flex' : 'none';
+    }
+
+    function updateDateDisplay() {
+        const d = new Date();
+        const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        document.getElementById('dateDisplay').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${days[d.getDay()]}`;
+        
+        const startOfYear = new Date(d.getFullYear(), 0, 1);
+        const weekNum = Math.ceil((((d - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7);
+        document.getElementById('weekDisplay').innerText = `第 ${weekNum} 周记录`;
+    }
+
+    // 动态鼓励语生成
+    function getEncouragement(remaining) {
+        if (remaining > 70) return "时间野霸，悠哉游哉 ☕";
+        if (remaining > 40) return "平平过，稳稳做 💪";
+        if (remaining > 15) return "赶紧咯，冲刺123 🏃";
+        return "无底了，拼命做！🔥";
+    }
+
+    function getTodayStr() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    
+    function isThisWeek(dateStr) {
+        const d = new Date(dateStr); const now = new Date();
+        const dayOfWeek = now.getDay() || 7; 
+        const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 1);
+        const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - dayOfWeek));
+        monday.setHours(0,0,0,0); sunday.setHours(23,59,59,999);
+        return d >= monday && d <= sunday;
+    }
+    
+    function isThisMonth(dateStr) {
+        const d = new Date(dateStr); const now = new Date();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }
+
+    function logTime(autoTaskName = null, autoTime = null) {
+        let taskName = autoTaskName;
+        if (!autoTaskName) {
+            const presetVal = document.getElementById('taskPreset').value;
+            if (presetVal === 'custom') {
+                taskName = document.getElementById('customTaskName').value.trim();
+                if(!taskName) { alert("请输入自定义活动名称！"); return; }
+            } else { taskName = presetVal; }
+        }
+        
+        const hours = parseInt(document.getElementById('taskHours').value);
+        const minutes = parseInt(document.getElementById('taskMinutes').value);
+        const timeSpent = autoTime !== null ? autoTime : (hours + (minutes / 60));
+
+        if (timeSpent <= 0) { alert("请选择投入的时间长度！"); return; }
+
+        timeLogs.push({ id: Date.now(), date: getTodayStr(), task: taskName, time: timeSpent });
+        localStorage.setItem('timeLogs', JSON.stringify(timeLogs));
+
+        if(!autoTaskName) {
+            document.getElementById('taskHours').value = '0';
+            document.getElementById('taskMinutes').value = '0';
+            document.getElementById('customTaskName').value = '';
+        }
+        renderApp();
+    }
+
+    function deleteLog(id) {
+        if(confirm("确定要删除这条记录吗？时间将自动退回到剩余账户中。")) {
+            timeLogs = timeLogs.filter(log => log.id !== id);
+            localStorage.setItem('timeLogs', JSON.stringify(timeLogs));
+            renderApp();
+        }
+    }
+
+    function settleDailyFriction() {
+        const todayLogs = timeLogs.filter(log => log.date === getTodayStr());
+        let loss = DAILY_HOURS - todayLogs.reduce((sum, log) => sum + log.time, 0);
+        if (loss <= 0) { alert("今日记录已满或超过 14 小时，干得漂亮！"); return; }
+        if (confirm(`今天还有 ${loss.toFixed(2)} 小时未记录，将其记入"碎片损耗"对账吗？`)) { logTime("👻 碎片损耗", loss); }
+    }
+
+    let weekChartInst = null; let monthChartInst = null;
+    function formatTime(decimalHours) {
+        const h = Math.floor(decimalHours); const m = Math.round((decimalHours - h) * 60);
+        return `${h}h ${m < 10 ? '0' + m : m}m`;
+    }
+
+    function renderApp() {
+        updateDateDisplay();
+        const todayStr = getTodayStr();
+        const weekLogs = timeLogs.filter(log => isThisWeek(log.date));
+        const monthLogs = timeLogs.filter(log => isThisMonth(log.date));
+
+        const todayLogs = timeLogs.filter(log => log.date === todayStr);
+        const todayListEl = document.getElementById('todayLogsList');
+        todayListEl.innerHTML = '';
+        if(todayLogs.length === 0) {
+            todayListEl.innerHTML = '<div style="color:var(--text-sub); font-size:13px; text-align:center;">今天还没记录任何时间哦</div>';
+        } else {
+            [...todayLogs].reverse().forEach(log => {
+                todayListEl.innerHTML += `
+                    <div class="mini-log-item">
+                        <div class="mini-log-left">
+                            <span class="task-color-dot" style="background-color: ${getColorForTask(log.task)}"></span>
+                            <span>${log.task}</span>
+                            <span style="font-family:monospace; color:var(--text-sub); margin-left:10px;">${formatTime(log.time)}</span>
+                        </div>
+                        <button class="del-btn" onclick="deleteLog(${log.id})">🗑️</button>
+                    </div>`;
+            });
+        }
+
+        let weekTotalUsed = 0; let weekSummary = {}; 
+        weekLogs.forEach(log => {
+            weekTotalUsed += log.time;
+            if (!weekSummary[log.task]) weekSummary[log.task] = { today: 0, week: 0 };
+            weekSummary[log.task].week += log.time;
+            if (log.date === todayStr) weekSummary[log.task].today += log.time;
+        });
+
+        const remaining = Math.max(0, TOTAL_WEEK_HOURS - weekTotalUsed);
+        document.getElementById('displayRemaining').innerText = formatTime(remaining);
+        document.getElementById('quoteDisplay').innerText = getEncouragement(remaining);
+
+        const weekListEl = document.getElementById('weekTaskList'); weekListEl.innerHTML = '';
+        Object.keys(weekSummary).forEach(task => {
+            weekListEl.innerHTML += `
+                <li class="task-card">
+                    <div class="card-header">
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <span class="task-color-dot" style="background-color: ${getColorForTask(task)}"></span>${task}
+                        </span>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-item">今日: <span>+${formatTime(weekSummary[task].today)}</span></div>
+                        <div class="stat-item">本周累计: <span>${formatTime(weekSummary[task].week)}</span></div>
+                    </div>
+                </li>`;
+        });
+
+        let monthSummary = {};
+        monthLogs.forEach(log => {
+            if (!monthSummary[log.task]) monthSummary[log.task] = 0;
+            monthSummary[log.task] += log.time;
+        });
+        const monthListEl = document.getElementById('monthTaskList'); monthListEl.innerHTML = '';
+        Object.keys(monthSummary).forEach(task => {
+            monthListEl.innerHTML += `
+                <li class="task-card" style="flex-direction: row; justify-content: space-between;">
+                    <span class="card-header" style="font-size: 15px;">
+                        <span class="task-color-dot" style="background-color: ${getColorForTask(task)}"></span>${task}
+                    </span>
+                    <span style="font-family: monospace; font-weight: 600;">${formatTime(monthSummary[task])}</span>
+                </li>`;
+        });
+
+        // 适配深色模式图表颜色
+        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        Chart.defaults.color = isDark ? '#98989d' : '#8e8e93';
+        const emptyChartColor = isDark ? '#38383a' : '#e5e5ea';
+
+        if(weekChartInst) weekChartInst.destroy();
+        const ctxWeek = document.getElementById('weekChart').getContext('2d');
+        let weekLabels = ['未分配的白纸时间']; let weekData = [remaining]; let weekColors = [emptyChartColor];
+        Object.keys(weekSummary).forEach(task => {
+            weekLabels.push(task); weekData.push(weekSummary[task].week); weekColors.push(getColorForTask(task));
+        });
+        weekChartInst = new Chart(ctxWeek, {
+            type: 'doughnut',
+            data: { labels: weekLabels, datasets: [{ data: weekData, backgroundColor: weekColors, borderWidth: 0 }] },
+            options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+        });
+
+        if(monthChartInst) monthChartInst.destroy();
+        const ctxMonth = document.getElementById('monthChart').getContext('2d');
+        let monthLabels = []; let monthData = []; let monthColors = [];
+        Object.keys(monthSummary).forEach(task => {
+            monthLabels.push(task); monthData.push(monthSummary[task]); monthColors.push(getColorForTask(task));
+        });
+        if(monthData.length === 0) { monthLabels = ['暂无数据']; monthData = [1]; monthColors = [emptyChartColor]; }
+        monthChartInst = new Chart(ctxMonth, {
+            type: 'pie',
+            data: { labels: monthLabels, datasets: [{ data: monthData, backgroundColor: monthColors, borderWidth: 2, borderColor: isDark ? '#1c1c1e' : '#fff' }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } } }
+        });
+    }
+
+    function switchView(view) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+        if (view === 'week') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.getElementById('viewWeek').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('viewMonth').classList.add('active');
+        }
+    }
+
+    // 监听系统深色模式切换，实时重绘图表
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderApp(); });
+
+    renderApp();
+</script>
+
+</body>
+</html>
