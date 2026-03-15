@@ -3,63 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>98h 时间账户 (V4 夜猫版)</title>
+    <title>98h 时间账户 (V5 全自动版)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* 基础样式与白天模式变量 */
         :root {
-            --primary: #007aff; 
-            --bg: #f4f7f6; 
-            --card-bg: #ffffff;
-            --text-main: #1c1c1e; 
-            --text-sub: #8e8e93; 
-            --border: #e5e5ea;
-            --red: #ff3b30;
-            --tab-bg: #f0f0f5; 
-            --item-bg: #f9f9f9;
+            --primary: #007aff; --bg: #f4f7f6; --card-bg: #ffffff;
+            --text-main: #1c1c1e; --text-sub: #8e8e93; --border: #e5e5ea;
+            --red: #ff3b30; --tab-bg: #f0f0f5; --item-bg: #f9f9f9; --modal-bg: rgba(0,0,0,0.4);
         }
-
-        /* 深色模式变量 (跟随系统自动生效) */
         @media (prefers-color-scheme: dark) {
             :root {
-                --primary: #0a84ff; 
-                --bg: #000000; 
-                --card-bg: #1c1c1e;
-                --text-main: #f2f2f7; 
-                --text-sub: #98989d; 
-                --border: #38383a;
-                --red: #ff453a;
-                --tab-bg: #2c2c2e; 
-                --item-bg: #2c2c2e;
+                --primary: #0a84ff; --bg: #000000; --card-bg: #1c1c1e;
+                --text-main: #f2f2f7; --text-sub: #98989d; --border: #38383a;
+                --red: #ff453a; --tab-bg: #2c2c2e; --item-bg: #2c2c2e; --modal-bg: rgba(0,0,0,0.7);
             }
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg); margin: 0; padding: 15px;
             display: flex; justify-content: center; -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.3s ease; /* 丝滑变色 */
+            transition: background-color 0.3s;
         }
         .app-container {
             width: 100%; max-width: 420px; background: var(--card-bg);
             border-radius: 24px; padding: 20px; box-sizing: border-box;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-            transition: background-color 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: background-color 0.3s;
         }
         
         /* 顶部看板 */
         .header { text-align: center; margin-bottom: 20px; }
-        .date-info { font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 4px;}
-        .week-info { color: var(--text-sub); font-size: 13px; margin-bottom: 8px;}
-        .big-time { font-size: 46px; font-weight: 800; color: var(--text-main); margin: 0; }
-        .subtitle { color: var(--text-sub); font-size: 12px; margin-top: 4px; }
+        .date-info { font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 2px;}
+        .week-info { color: var(--text-sub); font-size: 13px; margin-bottom: 12px;}
+        .today-label { color: var(--text-sub); font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+        .big-time { font-size: 52px; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.1; }
+        .subtitle { color: var(--text-sub); font-size: 13px; margin-top: 8px; background: var(--tab-bg); padding: 6px 12px; border-radius: 8px; display: inline-block;}
         .quote-text { 
-            font-size: 15px; font-weight: 700; color: var(--primary); 
-            margin-top: 10px; display: inline-block; padding: 6px 14px; 
+            font-size: 14px; font-weight: 700; color: var(--primary); 
+            margin-top: 15px; display: inline-block; padding: 6px 14px; 
             background: rgba(0, 122, 255, 0.1); border-radius: 12px;
         }
         
-        /* 记录区 */
+        /* 表单区 */
         .input-group { margin-bottom: 12px; display: flex; gap: 8px; width: 100%; }
         select, input[type="text"] {
             width: 100%; padding: 12px; border: 1px solid var(--border);
@@ -68,8 +52,6 @@
         }
         select:focus, input[type="text"]:focus { border-color: var(--primary); }
         .time-selects { display: flex; gap: 8px; flex: 1; }
-        .time-selects select { flex: 1; appearance: none; }
-        
         .btn-group { display: flex; gap: 10px; margin-top: 5px; }
         button {
             flex: 1; border: none; padding: 14px; border-radius: 12px;
@@ -80,7 +62,7 @@
         .btn-secondary { background-color: var(--tab-bg); color: var(--text-main); }
         .loss-text { color: var(--text-sub); font-size: 12px; text-align: center; margin-top: 10px; }
 
-        /* 今日明细 */
+        /* 列表与视图 */
         .today-logs-sec { margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); }
         .sec-title { font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 10px; }
         .mini-log-item {
@@ -89,71 +71,77 @@
             font-size: 14px; color: var(--text-main);
         }
         .mini-log-left { display: flex; align-items: center; gap: 8px; }
-        .del-btn { 
-            background: none; border: none; color: var(--red); padding: 5px; 
-            font-size: 16px; width: auto; height: auto; display: flex; align-items: center;
-        }
-
-        /* 视图切换 Tabs */
+        .del-btn { background: none; border: none; color: var(--red); padding: 5px; font-size: 16px; width: auto; height: auto; }
         .tabs { display: flex; margin: 25px 0 15px 0; background: var(--tab-bg); border-radius: 10px; padding: 4px; }
-        .tab-btn {
-            flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 600;
-            color: var(--text-sub); border-radius: 8px; cursor: pointer;
-        }
+        .tab-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 600; color: var(--text-sub); border-radius: 8px; cursor: pointer; }
         .tab-btn.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
-
-        /* 图表与卡片 */
         .chart-wrapper { position: relative; height: 200px; width: 100%; margin-bottom: 20px; }
         .view-section { display: none; }
         .view-section.active { display: block; }
         .task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-        .task-card {
-            background: var(--item-bg); border: 1px solid var(--border); border-radius: 16px;
-            padding: 15px; display: flex; flex-direction: column; gap: 8px; color: var(--text-main);
-        }
+        .task-card { background: var(--item-bg); border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; gap: 8px; color: var(--text-main); }
         .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 16px; }
-        .task-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0;}
-        .card-stats {
-            display: flex; justify-content: space-between; font-size: 13px; color: var(--text-sub);
-            background: var(--tab-bg); padding: 8px 12px; border-radius: 8px;
+        .task-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block;}
+        .card-stats { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-sub); background: var(--tab-bg); padding: 8px 12px; border-radius: 8px; }
+
+        /* 每周小结弹窗 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-bg); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 999;
         }
-        .stat-item span { font-family: monospace; font-weight: 600; color: var(--text-main); font-size: 14px;}
+        .modal-content {
+            background: var(--card-bg); width: 85%; max-width: 320px;
+            border-radius: 20px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center; color: var(--text-main);
+        }
+        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+        .modal-subtitle { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; }
+        .summary-list { text-align: left; background: var(--item-bg); padding: 12px; border-radius: 12px; margin-bottom: 20px; }
+        .summary-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+        .summary-item:last-child { margin-bottom: 0; }
+        .modal-btn { background: var(--primary); color: white; width: 100%; padding: 12px; border-radius: 12px; font-weight: 600; border: none; font-size: 16px; }
     </style>
 </head>
 <body>
+
+<div class="modal-overlay" id="summaryModal">
+    <div class="modal-content">
+        <div class="modal-title">🎉 上周小结</div>
+        <div class="modal-subtitle" id="modalWeekRange">3月2日 - 3月8日</div>
+        <div class="summary-list" id="modalList"></div>
+        <button class="modal-btn" onclick="closeModal()">开启新的一周</button>
+    </div>
+</div>
 
 <div class="app-container">
     <div class="header">
         <div class="date-info" id="dateDisplay">加载中...</div>
         <div class="week-info" id="weekDisplay">--</div>
-        <div class="big-time" id="displayRemaining">98h 00m</div>
+        
+        <div class="today-label">今日剩余时间</div>
+        <div class="big-time" id="displayTodayRemaining">14h 00m</div>
+        <div class="subtitle" id="weekRemainingDisplay">本周剩余: 98h 00m</div>
+        <br>
         <div class="quote-text" id="quoteDisplay">加载中...</div>
     </div>
 
     <div class="input-group">
         <select id="taskPreset" onchange="toggleCustomInput()">
             <optgroup label="💼 工作 / 学习">
-                <option value="写作">写作</option>
-                <option value="阅读">阅读</option>
-                <option value="修改">修改</option>
-                <option value="上课">上课</option>
-                <option value="开会">开会</option>
-                <option value="打工">打工</option>
+                <option value="写作">写作</option><option value="阅读">阅读</option>
+                <option value="修改">修改</option><option value="上课">上课</option>
+                <option value="开会">开会</option><option value="打工">打工</option>
             </optgroup>
             <optgroup label="🏠 整理 / 日常">
-                <option value="家务">家务</option>
-                <option value="买菜">买菜</option>
-                <option value="购物">购物</option>
-                <option value="通勤">通勤</option>
-                <option value="健身">健身</option>
+                <option value="家务">家务</option><option value="买菜">买菜</option>
+                <option value="购物">购物</option><option value="通勤">通勤</option><option value="健身">健身</option>
             </optgroup>
             <optgroup label="🎉 休闲 / 社交">
-                <option value="聚餐">聚餐</option>
-                <option value="出去玩">出去玩</option>
-                <option value="看视频">看视频</option>
-                <option value="通话">通话</option>
+                <option value="聚餐">聚餐</option><option value="出去玩">出去玩</option>
+                <option value="看视频">看视频</option><option value="通话">通话</option>
             </optgroup>
-            <option value="custom">✍️ 手动输入其它活动...</option>
+            <option value="custom">✍️ 手动输入其它...</option>
         </select>
     </div>
     <div class="input-group" id="customInputDiv" style="display: none;">
@@ -163,19 +151,18 @@
     <div class="time-selects input-group">
         <select id="taskHours"></select>
         <select id="taskMinutes">
-            <option value="0">0 分钟</option>
-            <option value="15">15 分钟</option>
-            <option value="30">30 分钟</option>
-            <option value="45">45 分钟</option>
+            <option value="0">0 分钟</option><option value="15">15 分钟</option>
+            <option value="30">30 分钟</option><option value="45">45 分钟</option>
         </select>
     </div>
     <div class="btn-group">
         <button class="btn-primary" onclick="logTime()">记录单笔时间</button>
-        <button class="btn-secondary" onclick="settleDailyFriction()">睡前结损耗</button>
+        <button class="btn-secondary" onclick="settleDailyFriction()">手动结损耗</button>
     </div>
+    <div class="loss-text">过零点若未满14h，系统将自动算作损耗</div>
 
     <div class="today-logs-sec">
-        <div class="sec-title">📝 今日记录明细 (点 🗑️ 可撤销)</div>
+        <div class="sec-title">📝 今日记录 (点 🗑️ 可撤销)</div>
         <div id="todayLogsList"></div>
     </div>
 
@@ -183,12 +170,10 @@
         <div class="tab-btn active" onclick="switchView('week')">本周分布</div>
         <div class="tab-btn" onclick="switchView('month')">本月分布</div>
     </div>
-
     <div id="viewWeek" class="view-section active">
         <div class="chart-wrapper"><canvas id="weekChart"></canvas></div>
         <ul class="task-list" id="weekTaskList"></ul>
     </div>
-
     <div id="viewMonth" class="view-section">
         <div class="chart-wrapper"><canvas id="monthChart"></canvas></div>
         <ul class="task-list" id="monthTaskList"></ul>
@@ -196,85 +181,148 @@
 </div>
 
 <script>
-    const TOTAL_WEEK_HOURS = 98;
-    const DAILY_HOURS = 14;
+    const TOTAL_WEEK_HOURS = 98; const DAILY_HOURS = 14;
     let timeLogs = JSON.parse(localStorage.getItem('timeLogs')) || [];
     
+    // 颜色库
     const TASK_CATEGORIES = {
-        '写作': '#007aff', '阅读': '#34aadc', '修改': '#5856d6', '上课': '#5ac8fa', '开会': '#0056b3', '打工': '#30b0c7',
-        '健身': '#34c759', '买菜': '#3cb371', '家务': '#8e8e93', '通勤': '#aeaeb2', '购物': '#ff9500',
-        '聚餐': '#ff2d55', '出去玩': '#ff3b30', '看视频': '#ffcc00', '通话': '#ff6b22',
-        '👻 碎片损耗': '#8e8e93'
+        '写作':'#007aff','阅读':'#34aadc','修改':'#5856d6','上课':'#5ac8fa','开会':'#0056b3','打工':'#30b0c7',
+        '健身':'#34c759','买菜':'#3cb371','家务':'#8e8e93','通勤':'#aeaeb2','购物':'#ff9500',
+        '聚餐':'#ff2d55','出去玩':'#ff3b30','看视频':'#ffcc00','通话':'#ff6b22','👻 碎片损耗':'#8e8e93'
     };
 
     function getColorForTask(taskName) {
         if (TASK_CATEGORIES[taskName]) return TASK_CATEGORIES[taskName];
-        let hash = 0;
-        for (let i = 0; i < taskName.length; i++) hash = taskName.charCodeAt(i) + ((hash << 5) - hash);
-        const fallbackColors = ['#007aff', '#34c759', '#ff9500', '#ff3b30', '#5856d6', '#ff2d55', '#af52de'];
-        return fallbackColors[Math.abs(hash) % fallbackColors.length];
+        let hash = 0; for(let i=0; i<taskName.length; i++) hash = taskName.charCodeAt(i) + ((hash<<5)-hash);
+        const fb = ['#007aff', '#34c759', '#ff9500', '#ff3b30', '#5856d6', '#ff2d55', '#af52de'];
+        return fb[Math.abs(hash) % fb.length];
     }
 
     const hoursSelect = document.getElementById('taskHours');
     for (let i = 0; i <= DAILY_HOURS; i++) hoursSelect.innerHTML += `<option value="${i}">${i} 小时</option>`;
 
     function toggleCustomInput() {
-        const customDiv = document.getElementById('customInputDiv');
-        customDiv.style.display = document.getElementById('taskPreset').value === 'custom' ? 'flex' : 'none';
+        document.getElementById('customInputDiv').style.display = document.getElementById('taskPreset').value === 'custom' ? 'flex' : 'none';
     }
 
-    function updateDateDisplay() {
-        const d = new Date();
-        const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-        document.getElementById('dateDisplay').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${days[d.getDay()]}`;
-        
-        const startOfYear = new Date(d.getFullYear(), 0, 1);
-        const weekNum = Math.ceil((((d - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7);
-        document.getElementById('weekDisplay').innerText = `第 ${weekNum} 周记录`;
+    // --- 日期核心算法 ---
+    function getTodayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    function getWeekId(d) {
+        const date = new Date(d.getTime()); date.setHours(0,0,0,0); date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+        const w1 = new Date(date.getFullYear(), 0, 4);
+        return `${date.getFullYear()}-W${1 + Math.round(((date.getTime() - w1.getTime())/86400000 - 3 + (w1.getDay()+6)%7)/7)}`;
     }
-
-    // 动态鼓励语生成
-    function getEncouragement(remaining) {
-        if (remaining > 70) return "时间野霸，悠哉游哉 ☕";
-        if (remaining > 40) return "平平过，稳稳做 💪";
-        if (remaining > 15) return "赶紧咯，冲刺123 🏃";
-        return "无底了，拼命做！🔥";
+    function getWeekRangeStr(d) {
+        const date = new Date(d); const day = date.getDay() || 7;
+        const mon = new Date(date); mon.setDate(date.getDate() - day + 1);
+        const sun = new Date(date); sun.setDate(date.getDate() - day + 7);
+        return `${mon.getMonth()+1}月${mon.getDate()}日 - ${sun.getMonth()+1}月${sun.getDate()}日`;
     }
-
-    function getTodayStr() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-    
     function isThisWeek(dateStr) {
-        const d = new Date(dateStr); const now = new Date();
-        const dayOfWeek = now.getDay() || 7; 
-        const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 1);
-        const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - dayOfWeek));
-        monday.setHours(0,0,0,0); sunday.setHours(23,59,59,999);
-        return d >= monday && d <= sunday;
+        const d = new Date(dateStr); const now = new Date(); const day = now.getDay() || 7; 
+        const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
+        const sun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - day));
+        mon.setHours(0,0,0,0); sun.setHours(23,59,59,999);
+        return d >= mon && d <= sun;
     }
-    
     function isThisMonth(dateStr) {
         const d = new Date(dateStr); const now = new Date();
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }
 
+    // 针对每日的鼓励语
+    function getDailyEncouragement(remaining) {
+        if (remaining >= 10) return "今天才刚开始，干点正事 🚀";
+        if (remaining >= 5) return "稳步推进，状态不错 💪";
+        if (remaining >= 2) return "余额不多了，抓紧收尾 ⏳";
+        return "今日即将完结，准备休息 🌙";
+    }
+
+    // --- 自动化核心：零点结损耗 & 周报弹窗 ---
+    function runAutoSettleAndSummary() {
+        const todayStr = getTodayStr();
+        const currentWeekId = getWeekId(new Date());
+        let meta = JSON.parse(localStorage.getItem('trackerMeta')) || { lastDate: todayStr, lastWeek: currentWeekId };
+
+        // 1. 自动填补过去遗漏的损耗 (过零点逻辑)
+        if (meta.lastDate !== todayStr && meta.lastDate < todayStr) {
+            let loopDate = new Date(meta.lastDate);
+            loopDate.setDate(loopDate.getDate() + 1);
+            
+            while(true) {
+                const loopStr = `${loopDate.getFullYear()}-${String(loopDate.getMonth()+1).padStart(2,'0')}-${String(loopDate.getDate()).padStart(2,'0')}`;
+                if (loopStr >= todayStr) break;
+                
+                // 检查这天记录了多少
+                const daySum = timeLogs.filter(l => l.date === loopStr).reduce((acc, l) => acc + l.time, 0);
+                if (daySum < DAILY_HOURS) {
+                    timeLogs.push({ id: Date.now() + Math.random(), date: loopStr, task: '👻 碎片损耗', time: DAILY_HOURS - daySum });
+                }
+                loopDate.setDate(loopDate.getDate() + 1);
+            }
+        }
+
+        // 2. 每周小结弹窗
+        if (meta.lastWeek !== currentWeekId) {
+            generateWeeklySummary(meta.lastWeek);
+        }
+
+        // 3. 更新系统状态
+        meta.lastDate = todayStr;
+        meta.lastWeek = currentWeekId;
+        localStorage.setItem('trackerMeta', JSON.stringify(meta));
+        localStorage.setItem('timeLogs', JSON.stringify(timeLogs));
+    }
+
+    function generateWeeklySummary(targetWeekId) {
+        // 筛选上周的数据
+        const lastWeekLogs = timeLogs.filter(log => getWeekId(new Date(log.date)) === targetWeekId);
+        if(lastWeekLogs.length === 0) return;
+
+        let summary = {};
+        lastWeekLogs.forEach(log => {
+            if(!summary[log.task]) summary[log.task] = 0;
+            summary[log.task] += log.time;
+        });
+
+        // 排序取出耗时最多的前 5 项
+        const sortedTasks = Object.keys(summary).sort((a,b) => summary[b] - summary[a]).slice(0, 5);
+        
+        let html = '';
+        sortedTasks.forEach(task => {
+            html += `<div class="summary-item">
+                <span><span class="task-color-dot" style="background-color:${getColorForTask(task)}"></span> ${task}</span>
+                <span style="font-family:monospace; font-weight:bold;">${formatTime(summary[task])}</span>
+            </div>`;
+        });
+
+        document.getElementById('modalList').innerHTML = html;
+        // 推算上周日期范围展示
+        document.getElementById('modalWeekRange').innerText = "上周回顾"; 
+        document.getElementById('summaryModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('summaryModal').style.display = 'none'; }
+
+    // --- 记录操作 ---
     function logTime(autoTaskName = null, autoTime = null) {
         let taskName = autoTaskName;
         if (!autoTaskName) {
             const presetVal = document.getElementById('taskPreset').value;
             if (presetVal === 'custom') {
                 taskName = document.getElementById('customTaskName').value.trim();
-                if(!taskName) { alert("请输入自定义活动名称！"); return; }
+                if(!taskName) { alert("请输入活动名称！"); return; }
             } else { taskName = presetVal; }
         }
         
-        const hours = parseInt(document.getElementById('taskHours').value);
-        const minutes = parseInt(document.getElementById('taskMinutes').value);
-        const timeSpent = autoTime !== null ? autoTime : (hours + (minutes / 60));
-
+        const timeSpent = autoTime !== null ? autoTime : (parseInt(document.getElementById('taskHours').value) + (parseInt(document.getElementById('taskMinutes').value) / 60));
         if (timeSpent <= 0) { alert("请选择投入的时间长度！"); return; }
+
+        // 防止今日超支
+        const todaySum = timeLogs.filter(l => l.date === getTodayStr()).reduce((acc, l) => acc + l.time, 0);
+        if (!autoTaskName && (todaySum + timeSpent) > DAILY_HOURS) {
+            if(!confirm(`注意：你今天记录的总时间将超过 14 小时，是否继续？`)) return;
+        }
 
         timeLogs.push({ id: Date.now(), date: getTodayStr(), task: taskName, time: timeSpent });
         localStorage.setItem('timeLogs', JSON.stringify(timeLogs));
@@ -288,7 +336,7 @@
     }
 
     function deleteLog(id) {
-        if(confirm("确定要删除这条记录吗？时间将自动退回到剩余账户中。")) {
+        if(confirm("确定要删除这条记录吗？时间将自动退回。")) {
             timeLogs = timeLogs.filter(log => log.id !== id);
             localStorage.setItem('timeLogs', JSON.stringify(timeLogs));
             renderApp();
@@ -296,12 +344,13 @@
     }
 
     function settleDailyFriction() {
-        const todayLogs = timeLogs.filter(log => log.date === getTodayStr());
-        let loss = DAILY_HOURS - todayLogs.reduce((sum, log) => sum + log.time, 0);
-        if (loss <= 0) { alert("今日记录已满或超过 14 小时，干得漂亮！"); return; }
-        if (confirm(`今天还有 ${loss.toFixed(2)} 小时未记录，将其记入"碎片损耗"对账吗？`)) { logTime("👻 碎片损耗", loss); }
+        const todaySum = timeLogs.filter(log => log.date === getTodayStr()).reduce((sum, log) => sum + log.time, 0);
+        let loss = DAILY_HOURS - todaySum;
+        if (loss <= 0) { alert("今日时间已记录满 14 小时，无需手动结损耗！"); return; }
+        if (confirm(`今天还有 ${loss.toFixed(2)} 小时空白，一键记入"碎片损耗"？`)) logTime("👻 碎片损耗", loss);
     }
 
+    // --- UI 渲染 ---
     let weekChartInst = null; let monthChartInst = null;
     function formatTime(decimalHours) {
         const h = Math.floor(decimalHours); const m = Math.round((decimalHours - h) * 60);
@@ -309,120 +358,93 @@
     }
 
     function renderApp() {
-        updateDateDisplay();
+        const d = new Date(); const days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+        document.getElementById('dateDisplay').innerText = `${d.getMonth()+1}月${d.getDate()}日 ${days[d.getDay()]}`;
+        
+        const weekRange = getWeekRangeStr(d);
+        document.getElementById('weekDisplay').innerText = `第 ${getWeekId(d).split('W')[1]} 周记录`;
+        
         const todayStr = getTodayStr();
         const weekLogs = timeLogs.filter(log => isThisWeek(log.date));
-        const monthLogs = timeLogs.filter(log => isThisMonth(log.date));
-
+        
+        // 今日统计
         const todayLogs = timeLogs.filter(log => log.date === todayStr);
-        const todayListEl = document.getElementById('todayLogsList');
-        todayListEl.innerHTML = '';
-        if(todayLogs.length === 0) {
-            todayListEl.innerHTML = '<div style="color:var(--text-sub); font-size:13px; text-align:center;">今天还没记录任何时间哦</div>';
-        } else {
+        let todayTotalUsed = todayLogs.reduce((acc, log) => acc + log.time, 0);
+        const todayRemaining = Math.max(0, DAILY_HOURS - todayTotalUsed);
+        
+        document.getElementById('displayTodayRemaining').innerText = formatTime(todayRemaining);
+        document.getElementById('quoteDisplay').innerText = getDailyEncouragement(todayRemaining);
+
+        // 本周统计
+        let weekTotalUsed = weekLogs.reduce((acc, log) => acc + log.time, 0);
+        const weekRemaining = Math.max(0, TOTAL_WEEK_HOURS - weekTotalUsed);
+        document.getElementById('weekRemainingDisplay').innerText = `本周剩余: ${formatTime(weekRemaining)} | ${weekRange}`;
+
+        // 渲染今日列表
+        const todayListEl = document.getElementById('todayLogsList'); todayListEl.innerHTML = '';
+        if(todayLogs.length === 0) { todayListEl.innerHTML = '<div style="color:var(--text-sub); font-size:13px; text-align:center;">今天还没记录任何时间哦</div>'; } 
+        else {
             [...todayLogs].reverse().forEach(log => {
                 todayListEl.innerHTML += `
                     <div class="mini-log-item">
-                        <div class="mini-log-left">
-                            <span class="task-color-dot" style="background-color: ${getColorForTask(log.task)}"></span>
-                            <span>${log.task}</span>
-                            <span style="font-family:monospace; color:var(--text-sub); margin-left:10px;">${formatTime(log.time)}</span>
-                        </div>
+                        <div class="mini-log-left"><span class="task-color-dot" style="background-color: ${getColorForTask(log.task)}"></span><span>${log.task}</span>
+                        <span style="font-family:monospace; color:var(--text-sub); margin-left:10px;">${formatTime(log.time)}</span></div>
                         <button class="del-btn" onclick="deleteLog(${log.id})">🗑️</button>
                     </div>`;
             });
         }
 
-        let weekTotalUsed = 0; let weekSummary = {}; 
+        // 渲染图表与卡片
+        let weekSummary = {}; 
         weekLogs.forEach(log => {
-            weekTotalUsed += log.time;
             if (!weekSummary[log.task]) weekSummary[log.task] = { today: 0, week: 0 };
             weekSummary[log.task].week += log.time;
             if (log.date === todayStr) weekSummary[log.task].today += log.time;
         });
 
-        const remaining = Math.max(0, TOTAL_WEEK_HOURS - weekTotalUsed);
-        document.getElementById('displayRemaining').innerText = formatTime(remaining);
-        document.getElementById('quoteDisplay').innerText = getEncouragement(remaining);
-
         const weekListEl = document.getElementById('weekTaskList'); weekListEl.innerHTML = '';
         Object.keys(weekSummary).forEach(task => {
             weekListEl.innerHTML += `
-                <li class="task-card">
-                    <div class="card-header">
-                        <span style="display:flex; align-items:center; gap:8px;">
-                            <span class="task-color-dot" style="background-color: ${getColorForTask(task)}"></span>${task}
-                        </span>
-                    </div>
-                    <div class="card-stats">
-                        <div class="stat-item">今日: <span>+${formatTime(weekSummary[task].today)}</span></div>
-                        <div class="stat-item">本周累计: <span>${formatTime(weekSummary[task].week)}</span></div>
-                    </div>
-                </li>`;
+                <li class="task-card"><div class="card-header"><span style="display:flex; align-items:center; gap:8px;"><span class="task-color-dot" style="background-color: ${getColorForTask(task)}"></span>${task}</span></div>
+                <div class="card-stats"><div class="stat-item">今日: <span>+${formatTime(weekSummary[task].today)}</span></div><div class="stat-item">本周: <span>${formatTime(weekSummary[task].week)}</span></div></div></li>`;
         });
 
-        let monthSummary = {};
-        monthLogs.forEach(log => {
-            if (!monthSummary[log.task]) monthSummary[log.task] = 0;
-            monthSummary[log.task] += log.time;
-        });
-        const monthListEl = document.getElementById('monthTaskList'); monthListEl.innerHTML = '';
-        Object.keys(monthSummary).forEach(task => {
-            monthListEl.innerHTML += `
-                <li class="task-card" style="flex-direction: row; justify-content: space-between;">
-                    <span class="card-header" style="font-size: 15px;">
-                        <span class="task-color-dot" style="background-color: ${getColorForTask(task)}"></span>${task}
-                    </span>
-                    <span style="font-family: monospace; font-weight: 600;">${formatTime(monthSummary[task])}</span>
-                </li>`;
-        });
-
-        // 适配深色模式图表颜色
         const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        Chart.defaults.color = isDark ? '#98989d' : '#8e8e93';
-        const emptyChartColor = isDark ? '#38383a' : '#e5e5ea';
+        Chart.defaults.color = isDark ? '#98989d' : '#8e8e93'; const emptyChartColor = isDark ? '#38383a' : '#e5e5ea';
 
         if(weekChartInst) weekChartInst.destroy();
         const ctxWeek = document.getElementById('weekChart').getContext('2d');
-        let weekLabels = ['未分配的白纸时间']; let weekData = [remaining]; let weekColors = [emptyChartColor];
-        Object.keys(weekSummary).forEach(task => {
-            weekLabels.push(task); weekData.push(weekSummary[task].week); weekColors.push(getColorForTask(task));
-        });
-        weekChartInst = new Chart(ctxWeek, {
-            type: 'doughnut',
-            data: { labels: weekLabels, datasets: [{ data: weekData, backgroundColor: weekColors, borderWidth: 0 }] },
-            options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
-        });
+        let weekLabels = ['未分配时间']; let weekData = [weekRemaining]; let weekColors = [emptyChartColor];
+        Object.keys(weekSummary).forEach(task => { weekLabels.push(task); weekData.push(weekSummary[task].week); weekColors.push(getColorForTask(task)); });
+        weekChartInst = new Chart(ctxWeek, { type: 'doughnut', data: { labels: weekLabels, datasets: [{ data: weekData, backgroundColor: weekColors, borderWidth: 0 }] }, options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } } });
 
+        // 月度极简处理
+        let monthSummary = {};
+        timeLogs.filter(log => isThisMonth(log.date)).forEach(log => {
+            if (!monthSummary[log.task]) monthSummary[log.task] = 0; monthSummary[log.task] += log.time;
+        });
+        const monthListEl = document.getElementById('monthTaskList'); monthListEl.innerHTML = '';
+        Object.keys(monthSummary).forEach(task => {
+            monthListEl.innerHTML += `<li class="task-card" style="flex-direction: row; justify-content: space-between;"><span class="card-header" style="font-size: 15px;"><span class="task-color-dot" style="background-color: ${getColorForTask(task)}"></span>${task}</span><span style="font-family: monospace; font-weight: 600;">${formatTime(monthSummary[task])}</span></li>`;
+        });
         if(monthChartInst) monthChartInst.destroy();
         const ctxMonth = document.getElementById('monthChart').getContext('2d');
         let monthLabels = []; let monthData = []; let monthColors = [];
-        Object.keys(monthSummary).forEach(task => {
-            monthLabels.push(task); monthData.push(monthSummary[task]); monthColors.push(getColorForTask(task));
-        });
+        Object.keys(monthSummary).forEach(task => { monthLabels.push(task); monthData.push(monthSummary[task]); monthColors.push(getColorForTask(task)); });
         if(monthData.length === 0) { monthLabels = ['暂无数据']; monthData = [1]; monthColors = [emptyChartColor]; }
-        monthChartInst = new Chart(ctxMonth, {
-            type: 'pie',
-            data: { labels: monthLabels, datasets: [{ data: monthData, backgroundColor: monthColors, borderWidth: 2, borderColor: isDark ? '#1c1c1e' : '#fff' }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } } }
-        });
+        monthChartInst = new Chart(ctxMonth, { type: 'pie', data: { labels: monthLabels, datasets: [{ data: monthData, backgroundColor: monthColors, borderWidth: 2, borderColor: isDark ? '#1c1c1e' : '#fff' }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } } } });
     }
 
     function switchView(view) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-        if (view === 'week') {
-            document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            document.getElementById('viewWeek').classList.add('active');
-        } else {
-            document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            document.getElementById('viewMonth').classList.add('active');
-        }
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+        if (view === 'week') { document.querySelectorAll('.tab-btn')[0].classList.add('active'); document.getElementById('viewWeek').classList.add('active'); } 
+        else { document.querySelectorAll('.tab-btn')[1].classList.add('active'); document.getElementById('viewMonth').classList.add('active'); }
     }
 
-    // 监听系统深色模式切换，实时重绘图表
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderApp(); });
 
+    // 启动系统 (先跑自动结账，再渲染)
+    runAutoSettleAndSummary();
     renderApp();
 </script>
 
